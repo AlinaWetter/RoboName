@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: script.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: script.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>let definitions = [];
+let urls = [];
+let species = [];
+
+
+/**
+ * This function is used to initialize the website
+ */
+function init() {
+    showCards();
+}
+
+
+/**
+ * This function is used to save Data in local storage 
+ */
+async function saveToLocalStorage() {
+    let definitionsAsText = JSON.stringify(definitions);
+    let urlsAsText = JSON.stringify(urls);
+    let speciesAsText = JSON.stringify(species);
+
+    localStorage.setItem('definitions', definitionsAsText);
+    localStorage.setItem('urls', urlsAsText);
+    localStorage.setItem('species', speciesAsText);
+}
+
+
+/**
+ * This function is used to get Data from local storage
+ */
+async function loadFromLocalStorage() {
+    let definitionsAsText = localStorage.getItem('definitions');
+    let urlsAsText = localStorage.getItem('urls');
+    let speciesAsText = localStorage.getItem('species');
+
+    if (definitionsAsText &amp;&amp; urlsAsText &amp;&amp; speciesAsText) {
+        definitions = JSON.parse(definitionsAsText);
+        urls = JSON.parse(urlsAsText);
+        species = JSON.parse(speciesAsText);
+    }
+}
+
+
+/**
+ * This function is used to show existing Cards
+ */
+async function showCards() {
+    await loadFromLocalStorage();
+
+    clearContent(); 
+    createAddCard();
+    for (let i = definitions.length - 1; i >= 0; i--) {
+        drawCard(i);
+    }
+}
+
+
+/**
+ * This function is used to clear content
+ */
+function clearContent() {
+    let contentDiv = document.getElementById('contentDiv');
+    contentDiv.innerHTML = '';
+}
+
+
+/**
+ * This function is used to draw one specific card
+ * 
+ * @param {number} i - Index of the created object
+ */
+function drawCard(i) {
+    let url = urls[i];
+    let definition = definitions[i];
+    let size = getSizeOfImage(url);
+    let specie = species[i];
+    document.getElementById('contentDiv').innerHTML += newCardHtml(url, definition, size, specie, i);
+    setColor(specie, i);
+}
+
+
+/**
+ * This function is used to add and remove the class d-none
+ */
+function openInputDiv() {
+    document.getElementById('plusImg').classList.add('d-none')
+    document.getElementById('inputDiv').classList.remove('d-none')
+}
+
+
+/**
+ * This function is used to create the container, which has the function to add new Card
+ */
+function createAddCard() {
+    let contentDiv = document.getElementById('contentDiv');
+    contentDiv.innerHTML += addingCardHtml();
+}
+
+
+/**
+ * This function is used to add the color to the created Object
+ * 
+ * @param {string} specie - The kind of specie, which color is going to be set
+ * @param {number} i - Index of the created object
+ */
+function setColor(specie, i) {
+    document.getElementById('specie' + i).style.color = specieColor(specie);
+}
+
+
+/**
+ * This function is used to define the color
+ * 
+ * @param {string} specie - The kind of specie, which color is going to be set
+ * @returns {string} - The color of the specie span
+ */
+function specieColor(specie) {
+    let typesAndColors =  {
+        Roboter: '#dd8a64',
+        Monster: '#829988',
+        Katze: '#a383bc'
+    }
+
+    return typesAndColors[specie];
+}
+
+
+/**
+ * This function is used to set the Size according to the QueryParameter/Specie
+ * 
+ * @param {string} url -The url of the objects image
+ * @returns {number} - The width of the image of the specific Card
+ */
+function getSizeOfImage(url) {
+    if (url.includes('set1')) {
+        return 230;
+    };
+    if (url.includes('set2')) {
+        return 220;
+    };
+    if (url.includes('set4')) {
+        return 180;
+    }
+}
+
+
+/**
+ * This function is used to create a new Card by reading the value
+ * 
+ * @param {string} specie - The kind of specie that should be created
+ */
+async function createCard(specie) {
+    let definition = document.getElementById('definition').value;
+
+    if (definition) {
+        let url = createURL(definition, specie);
+        await saveInformationsToArray(url, definition, specie);
+        document.getElementById('definition').value = '';
+        showCards();
+    } else {
+        document.getElementById('definition').placeholder = 'Please enter valid name';   
+    }
+}
+
+
+/**
+ * This function is used to push all collected Informations in the intended array
+ * 
+ * @param {string} url - The url of the objects image
+ * @param {string} definition - The definition of the object
+ * @param {string} specie - The specie of the objects
+ */
+async function saveInformationsToArray(url, definition, specie) {
+    definitions.push(definition);
+    urls.push(url);
+    species.push(specie);
+    await saveToLocalStorage();
+}
+
+
+/**
+ * This function is used to create a valid url that includes the definition and specie
+ * 
+ * @param {string} definition - The definition of the object
+ * @param {string} specie - The specie of the objects
+ * @returns {string} - The url for the image of the object
+ */
+function createURL(definition, specie) {
+    let URIdefinition = encodeURIComponent(definition);
+    let set = getQueryParameter(specie);
+
+    return `https://robohash.org/${URIdefinition}/?set=set${set}`;
+}
+
+
+/**
+ * This function is used to set the query Parameter (according to the specie) for the url
+ * 
+ * @param {string} specie - The specie of the object
+ * @returns {number} - The query parameter for the specified specie
+ */
+function getQueryParameter(specie) {
+    let queryParameters = {
+        Roboter: 1,
+        Monster: 2,
+        Katze: 4
+    }
+
+    return queryParameters[specie];
+}
+
+
+
+/**
+ * This function is used to delete one specific card
+ * 
+ * @param {number} i - Index of deleted object
+ */
+function deleteCard(i) {
+    spliceItem(i);
+    saveToLocalStorage();
+    showCards();
+}
+
+
+/**
+ * This function is supposed to splice a specific item out of all arrays
+ * 
+ * @param {number} i - Index of spliced item
+ */
+function spliceItem(i) {
+    definitions.splice(i, 1);
+    urls.splice(i, 1);
+    species.splice(i, 1)
+}
+
+
+/**
+ * This function is used to read the value of the Input
+ * 
+ * @returns {string} The value in lower case
+ */
+function inputValue() {
+    let searchValue = document.getElementById('searchBar').value;
+    searchValue = searchValue.toLowerCase();
+    return searchValue;
+}
+
+
+/**
+ * This function is used to filter all cards and show only specified Cards
+ */
+function filter() {
+    clearContent();
+    createAddCard();
+
+    if (inputValue()) {
+        drawFilteredCards()
+    } else {
+        showCards();
+    }
+}
+
+
+/**
+ * This function is used to render the filtered Cards backwards
+ */
+function drawFilteredCards() {
+    for (let i = definitions.length - 1; i >= 0; i--) {
+        if (filterByDefinition(i)) {
+            drawCard(i);
+        } else if (filterBySpecie(i)) {
+            drawCard(i);
+        };
+    }
+}
+
+
+/**
+ * 
+ * @param {number} i - Index of filtered card
+ * @returns {boolean} If the search input is found in the definitions array at the specific index
+ */
+function filterByDefinition(i) {
+    return definitions[i].toLowerCase().includes(inputValue())
+}
+
+
+/**
+ * 
+ * @param {number} i - Index of filtered card
+ * @returns {boolean} If the search input is found in the species array at the specific index
+ */
+function filterBySpecie(i) {
+    return species[i].toLowerCase().includes(inputValue())
+}
+
+
+////////// HTML /////////////////
+
+
+function newCardHtml(url, definition, size, specie, i) {
+    return `
+        &lt;div class='card' id='card${i}'>
+            &lt;img class='close-img' src='img/close_x.png' onclick='deleteCard(${i})'>
+            &lt;img style="width: ${size}px; height: ${size}px" class='image' src='${url}'>
+            &lt;div class='card-description'>
+                &lt;span class='definition'>${definition}&lt;/span>
+                &lt;span id='specie${i}' class='specie-name'>#${specie}&lt;/span>
+            &lt;/div>
+        &lt;/div>
+    `;
+}
+
+
+function addingCardHtml() {
+    return `
+        &lt;div class='card' onclick='openInputDiv()'>
+            &lt;div class="input-div d-none" id="inputDiv">
+                &lt;input class="name-input" type="text" id="definition" placeholder='name'>
+                &lt;div class="dropdown">
+                    &lt;button class="dropbtn">Character&lt;/button>
+                    &lt;div class="dropdown-content">
+                        &lt;a onclick="createCard('Roboter'); event.stopPropagation()">Roboter&lt;/a>
+                        &lt;a onclick="createCard('Monster'); event.stopPropagation()">Monster&lt;/a>
+                        &lt;a onclick="createCard('Katze'); event.stopPropagation()">Katze&lt;/a>
+                    &lt;/div>
+                &lt;/div>
+            &lt;/div>
+            &lt;img id="plusImg" class='plus-img' src='img/plus_black.png'>
+        &lt;/div>
+    `;
+}
+
+
+
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#clearContent">clearContent</a></li><li><a href="global.html#createAddCard">createAddCard</a></li><li><a href="global.html#createCard">createCard</a></li><li><a href="global.html#createURL">createURL</a></li><li><a href="global.html#deleteCard">deleteCard</a></li><li><a href="global.html#drawCard">drawCard</a></li><li><a href="global.html#drawFilteredCards">drawFilteredCards</a></li><li><a href="global.html#filter">filter</a></li><li><a href="global.html#filterByDefinition">filterByDefinition</a></li><li><a href="global.html#filterBySpecie">filterBySpecie</a></li><li><a href="global.html#getQueryParameter">getQueryParameter</a></li><li><a href="global.html#getSizeOfImage">getSizeOfImage</a></li><li><a href="global.html#init">init</a></li><li><a href="global.html#inputValue">inputValue</a></li><li><a href="global.html#loadFromLocalStorage">loadFromLocalStorage</a></li><li><a href="global.html#openInputDiv">openInputDiv</a></li><li><a href="global.html#saveInformationsToArray">saveInformationsToArray</a></li><li><a href="global.html#saveToLocalStorage">saveToLocalStorage</a></li><li><a href="global.html#setColor">setColor</a></li><li><a href="global.html#showCards">showCards</a></li><li><a href="global.html#specieColor">specieColor</a></li><li><a href="global.html#spliceItem">spliceItem</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Mon Mar 27 2023 21:09:51 GMT+0200 (Central European Summer Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

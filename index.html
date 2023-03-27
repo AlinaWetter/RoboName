@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/script.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="fonts.css">
+    <link rel="icon" type="image/png" href="img/robo_logo.png">
+
+    
+    <title>RoboName</title>
+</head>
+
+<body onload="init()">
+
+    <header>
+        <span>RoboName</span>
+        <span>Erstelle deinen ganz persönlichen imaginären Character</span>
+    </header>
+
+    <div class="search-bar">    
+        <img src="img/magnifyingglass_black.png" alt="">
+        <input id="searchBar" class="search-input" onkeyup="filter()" placeholder="search name/species...">
+    </div>
+        
+    <div class="content-div" id="contentDiv"></div>
+
+</body>
+
+</html>
